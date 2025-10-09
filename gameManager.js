@@ -129,7 +129,8 @@ function startGame(io) {
   gameState.gameStatus = 'placing';
 }
 
-// แก้ไข module.exports ให้ถูกต้อง ไม่มี key ซ้ำ
+
+
 module.exports = {
   addPlayer,
   removePlayer,

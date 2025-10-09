@@ -11,7 +11,7 @@ socket.on('disconnect', () => {
     statusEl.textContent = 'Disconnected';
 });
 
-// เราจะให้ server emit 'admin-update' มาให้หน้านี้โดยเฉพาะ
+
 socket.on('admin-update', (gameState) => {
     playerCountEl.textContent = Object.keys(gameState.players).length;
 });
@@ -20,4 +20,5 @@ resetButton.addEventListener('click', () => {
     if (confirm('Are you sure you want to reset the game and all scores?')) {
         socket.emit('admin-reset-game');
     }
+    
 });
