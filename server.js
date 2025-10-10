@@ -1,6 +1,3 @@
-
-// // npm start
-
 // server.js
 const express = require('express');
 const http = require('http');
@@ -68,6 +65,11 @@ io.on('connection', (socket) => {
     gameManager.removePlayer(socket.id, io);
     io.emit('admin-update', gameManager.getGameState());
   });
+
+  socket.on('ready-for-next-round', () => {
+    gameManager.readyForNextRound(socket.id, io);
+  });
+  
 });
 
 // เริ่มรันเซิร์ฟเวอร์
