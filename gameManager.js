@@ -55,25 +55,24 @@ function addPlayer(socketId, nickname) {
   return gameState.players[socketId];
 }
 
-function resetGame(io) { // <-- แก้ไข: รับ io เข้ามา
+function resetGame(io, { resetScores = false } = {}) {
   stopTimer();
+
   Object.keys(gameState.players).forEach(id => {
-    const player = gameState.players[id];
-    // player.score = 0;
-    player.ships = [];
-    player.shipPartsHit = 0;
-    player.gameBoard = Array(8).fill(0).map(() => Array(8).fill(null));
-    player.readyForNextRound = false;
+    const p = gameState.players[id];
+    if (resetScores) p.score = 0;      // <-- re-enable score reset via flag
+    p.ships = [];
+    p.shipPartsHit = 0;
+    p.gameBoard = Array(8).fill(0).map(() => Array(8).fill(null));
+    p.readyForNextRound = false;
   });
-  // gameState.gameStatus = 'waiting';
+
   gameState.gameStatus = 'placing';
   gameState.currentPlayerTurn = null;
   gameState.winner = null;
   gameState.timer = 10;
-  console.log('Game has been reset.');
-  if (io) { // <-- เพิ่มการตรวจสอบ io ก่อนใช้งาน
-    io.emit('update-game-state', getGameState());
-  }
+
+  if (io) io.emit('update-game-state', getGameState());
 }
 
 function removePlayer(socketId, io) {
