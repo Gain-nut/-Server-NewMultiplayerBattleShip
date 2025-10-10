@@ -218,6 +218,7 @@ module.exports = {
   handleFireShot,
   resetGame,
   readyForNextRound,
+  
 };
 
 
