@@ -100,21 +100,51 @@ function handleFireShot(socketId, coords, io) {
   if (isHit) {
     opponent.gameBoard[row][col] = 'hit';
     opponent.shipPartsHit += 1;
+    console.log(`${gameState.players[socketId].nickname} scored a HIT!`);
+
+//     // เช็คว่าชนะหรือยัง (ยิงชิ้นส่วนเรือครบ 16 ชิ้น)
     if (opponent.shipPartsHit >= 16) {
       gameState.gameStatus = 'gameover';
       gameState.winner = socketId;
       gameState.players[socketId].score += 1;
-      stopTimer();
+      console.log(`Game over! Winner is ${gameState.players[socketId].nickname}`);
+      stopTimer(); // <-- หยุด timer เมื่อเกมจบ
+      return 
     } else {
+      // ถ้ายังไม่จบเกม ให้สลับตา
+      console.log(`Turn end: ${gameState.players[socketId].nickname}`)
       gameState.currentPlayerTurn = opponentId;
-      startTimer(io);
+      startTimer(io); // <-- เริ่มจับเวลาใหม่เมื่อสลับตา
     }
+    
   } else {
     opponent.gameBoard[row][col] = 'miss';
+    console.log(`${gameState.players[socketId].nickname} MISSED!`);
+    // ถ้ายิงพลาด ให้สลับตา
     gameState.currentPlayerTurn = opponentId;
-    startTimer(io);
+    startTimer(io); // <-- เริ่มจับเวลาใหม่เมื่อสลับตา
   }
+  //------------------------------]
+ 
 }
+//   if (isHit) {
+//     opponent.gameBoard[row][col] = 'hit';
+//     opponent.shipPartsHit += 1;
+//     if (opponent.shipPartsHit >= 16) {
+//       gameState.gameStatus = 'gameover';
+//       gameState.winner = socketId;
+//       gameState.players[socketId].score += 1;
+//       stopTimer();
+//     } else {
+//       gameState.currentPlayerTurn = opponentId;
+//       startTimer(io);
+//     }
+//   } else {
+//     opponent.gameBoard[row][col] = 'miss';
+//     gameState.currentPlayerTurn = opponentId;
+//     startTimer(io);
+//   }
+// }
 
 function getGameState() {
   return gameState;
@@ -129,8 +159,7 @@ function startGame(io) {
   gameState.gameStatus = 'placing';
 }
 
-
-
+// แก้ไข module.exports ให้ถูกต้อง ไม่มี key ซ้ำ
 module.exports = {
   addPlayer,
   removePlayer,
