@@ -22,3 +22,12 @@ resetButton.addEventListener('click', () => {
     }
     
 });
+// Changes
+const logBox = document.getElementById('log');
+
+socket.on('log-message', (msg) => {
+  const time = new Date().toLocaleTimeString();
+  logBox.textContent += `[${time}] ${msg}\n`;
+  logBox.scrollTop = logBox.scrollHeight; // auto-scroll to latest line
+});
+// End changes

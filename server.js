@@ -20,7 +20,18 @@ const io = new Server(server, {
 });
 
 const PORT = 3001;
-
+// Changes
+const origLog = console.log;
+console.log = (...args) => {
+  origLog(...args); // keep printing in terminal
+  try {
+    const msg = args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
+    io.emit('log-message', msg); // send to admin UI
+  } catch {
+    // ignore JSON errors
+  }
+};
+// End Changes
 io.on('connection', (socket) => {
   console.log(`A user connected: ${socket.id}`);
 
