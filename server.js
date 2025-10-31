@@ -83,6 +83,7 @@ io.on('connection', (socket) => {
     // อัปเดตสถานะเกม
     gameState.gameStatus = 'gameover';
     gameState.winner = opponentId;
+    gameState.gameOverReason = 'surrender';
 
     // เพิ่มคะแนนให้ผู้ชนะ (optional)
     if (gameState.players[opponentId]) {
@@ -97,12 +98,14 @@ io.on('connection', (socket) => {
 
 
   // Disconnect
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-    gameManager.removePlayer(socket.id, io);
-    io.emit('admin-update', gameManager.getGameState());
-  });
+socket.on("disconnect", () => {
+  const nickname = socket.nickname; // เก็บ nickname ของผู้เล่น
+  socket.broadcast.emit("player-disconnect", nickname);
 });
+
+});
+
+
 
 server.listen(PORT, () => {
   console.log(`Battleship server running on port ${PORT}`);
