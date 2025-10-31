@@ -71,7 +71,17 @@ io.on('connection', (socket) => {
     gameManager.removePlayer(socket.id, io);
     io.emit('admin-update', gameManager.getGameState());
   });
+
+  socket.on('emoji', (payload) => {
+    // optional: validate payload.emoji is a single emoji character
+    socket.broadcast.emit('emoji', {
+      emoji: String(payload.emoji || '').slice(0, 4),
+      from: payload.from || 'Someone',
+    });
+  });
+  
 });
+ 
 
 server.listen(PORT, () => {
   console.log(`Battleship server running on port ${PORT}`);
