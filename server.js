@@ -69,6 +69,33 @@ io.on('connection', (socket) => {
     gameManager.readyForNextRound(socket.id, io);
   });
 
+  // Player surrenders
+  socket.on('surrender', ({ playerId }) => {
+    console.log(`Player ${playerId} surrendered!`);
+
+    const gameState = gameManager.getGameState();
+    const players = Object.keys(gameState.players || {});
+    if (players.length !== 2) return; // no opponent yet
+
+    // หาคู่ต่อสู้
+    const opponentId = players.find((id) => id !== playerId);
+
+    // อัปเดตสถานะเกม
+    gameState.gameStatus = 'gameover';
+    gameState.winner = opponentId;
+
+    // เพิ่มคะแนนให้ผู้ชนะ (optional)
+    if (gameState.players[opponentId]) {
+      gameState.players[opponentId].score =
+        (gameState.players[opponentId].score || 0) + 1;
+    }
+
+    io.emit('update-game-state', gameState);
+    io.emit('admin-update', gameState);
+  });
+
+
+
   // Disconnect
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
@@ -82,3 +109,4 @@ server.listen(PORT, () => {
   console.log(`Admin UI available at http://localhost:${PORT}`);
   
 });
+  
