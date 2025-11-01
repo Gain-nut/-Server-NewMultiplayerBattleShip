@@ -79,9 +79,31 @@ function removePlayer(socketId, io) {
   if (gameState.players[socketId]) {
     console.log(`${gameState.players[socketId].nickname} has left.`);
     delete gameState.players[socketId];
-    resetGame(io); // ส่ง io ต่อไป
+    
+    // แจ้งทุกคนในห้องว่า player หลุด
+    io.emit("player-disconnect", socketId);
+
+    // ถ้าเหลือผู้เล่นไม่ครบ 2 ให้รีเซ็ตเกม
+    if (Object.keys(gameState.players).length < 2) {
+      console.log("Not enough players, resetting game...");
+      stopTimer();
+      gameState.gameStatus = "waiting";
+      gameState.currentPlayerTurn = null;
+      gameState.winner = null;
+      gameState.timer = 10;
+      io.emit("update-game-state", getGameState());
+    }
   }
 }
+
+function getPlayerNickname(socketId) {
+  if (gameState.players[socketId]) {
+    return gameState.players[socketId].nickname;
+  }
+  return null;
+}
+
+
 
 function placeShips(socketId, ships, io) {
   if (!gameState.players[socketId]) return;
@@ -218,5 +240,6 @@ module.exports = {
   handleFireShot,
   resetGame,
   readyForNextRound,
+  getPlayerNickname,
   
 };

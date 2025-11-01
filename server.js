@@ -98,10 +98,22 @@ io.on('connection', (socket) => {
 
 
   // Disconnect
+const nickname = gameManager.getPlayerNickname(socket.id);
+
+
 socket.on("disconnect", () => {
-  const nickname = socket.nickname; // เก็บ nickname ของผู้เล่น
-  socket.broadcast.emit("player-disconnect", nickname);
+  const nickname = gameManager.getPlayerNickname(socket.id);
+  console.log(`Player disconnected: ${nickname || socket.id}`);
+  
+  // เอาผู้เล่นออก
+  gameManager.removePlayer(socket.id, io);
+
+  // แจ้งอีกฝั่งให้ขึ้น popup หรือ reset
+  io.emit("player-disconnect", nickname);
 });
+
+
+
 
 });
 
