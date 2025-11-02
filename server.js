@@ -66,10 +66,45 @@ io.on('connection', (socket) => {
     gameManager.readyForNextRound(socket.id, io);
   });
 
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
+  // Player surrenders
+  socket.on('surrender', ({ playerId }) => {
+    console.log(`Player ${playerId} surrendered!`);
+
+    const gameState = gameManager.getGameState();
+    const players = Object.keys(gameState.players || {});
+    if (players.length !== 2) return; // no opponent yet
+
+    // หาคู่ต่อสู้
+    const opponentId = players.find((id) => id !== playerId);
+
+    // อัปเดตสถานะเกม
+    gameState.gameStatus = 'gameover';
+    gameState.winner = opponentId;
+    gameState.gameOverReason = 'surrender';
+
+    // เพิ่มคะแนนให้ผู้ชนะ (optional)
+    if (gameState.players[opponentId]) {
+      gameState.players[opponentId].score =
+        (gameState.players[opponentId].score || 0) + 1;
+    }
+
+    io.emit('update-game-state', gameState);
+    io.emit('admin-update', gameState);
+  });
+
+  // Disconnect
+  const nickname = gameManager.getPlayerNickname(socket.id);
+
+
+  socket.on("disconnect", () => {
+    const nickname = gameManager.getPlayerNickname(socket.id);
+    console.log(`Player disconnected: ${nickname || socket.id}`);
+    
+    // เอาผู้เล่นออก
     gameManager.removePlayer(socket.id, io);
-    io.emit('admin-update', gameManager.getGameState());
+
+    // แจ้งอีกฝั่งให้ขึ้น popup หรือ reset
+    io.emit("player-disconnect", nickname);
   });
 
   socket.on('emoji', (payload) => {

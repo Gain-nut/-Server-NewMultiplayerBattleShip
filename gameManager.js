@@ -34,6 +34,17 @@ function startTimer(io) {
   }, 1000);
 }
 
+function createPlayerState() {
+  return {
+    nickname: '',
+    score: 0,
+    ships: [],
+    shipPartsHit: 0,
+    gameBoard: Array(8).fill(0).map(() => Array(8).fill(null)),
+    readyForNextRound: false,
+  };
+}
+
 function addPlayer(socketId, nickname) {
   if (Object.keys(gameState.players).length >= 2) return null;
   gameState.players[socketId] = {
@@ -71,9 +82,30 @@ function removePlayer(socketId, io) {
   if (gameState.players[socketId]) {
     console.log(`${gameState.players[socketId].nickname} has left.`);
     delete gameState.players[socketId];
-    resetGame(io);
+    
+    // แจ้งทุกคนในห้องว่า player หลุด
+    io.emit("player-disconnect", socketId);
+
+    // ถ้าเหลือผู้เล่นไม่ครบ 2 ให้รีเซ็ตเกม
+    if (Object.keys(gameState.players).length < 2) {
+      console.log("Not enough players, resetting game...");
+      stopTimer();
+      gameState.gameStatus = "waiting";
+      gameState.currentPlayerTurn = null;
+      gameState.winner = null;
+      gameState.timer = 10;
+      io.emit("update-game-state", getGameState());
+    }
   }
 }
+
+function getPlayerNickname(socketId) {
+  if (gameState.players[socketId]) {
+    return gameState.players[socketId].nickname;
+  }
+  return null;
+}
+
 
 function placeShips(socketId, ships, io) {
   if (!gameState.players[socketId]) return;
@@ -115,6 +147,7 @@ function handleFireShot(socketId, coords, io) {
   if (isHit) {
     opponent.gameBoard[row][col] = 'hit';
     opponent.shipPartsHit += 1;
+    console.log(`${gameState.players[socketId].nickname} scored a HIT!`);
 
     if (opponent.shipPartsHit >= 16) {
       // round winner
@@ -123,7 +156,7 @@ function handleFireShot(socketId, coords, io) {
       gameState.nextStarterId = socketId;      // <— winner starts next round
       stopTimer();
 
-      if (gameState.players[socketId].score >= 2) {
+      if (gameState.players[socketId].score >= 10) {
         gameState.gameStatus = 'matchover';
         console.log('Match over! Winner:', gameState.players[socketId].nickname);
       } else {
@@ -141,6 +174,7 @@ function handleFireShot(socketId, coords, io) {
   } else {
     opponent.gameBoard[row][col] = 'miss';
     gameState.currentPlayerTurn = opponentId;
+    console.log(`${gameState.players[socketId].nickname} MISSED!`);
     startTimer(io);
   }
 
@@ -178,6 +212,7 @@ function readyForNextRound(socketId, io) {
   }
 }
 
+// แก้ไข module.exports ให้ถูกต้อง ไม่มี key ซ้ำ
 module.exports = {
   addPlayer,
   removePlayer,
@@ -188,4 +223,6 @@ module.exports = {
   handleFireShot,
   resetGame,
   readyForNextRound,
+  getPlayerNickname,
+  
 };
