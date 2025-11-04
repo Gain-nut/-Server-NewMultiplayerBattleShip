@@ -73,6 +73,7 @@ function resetGame(io, { resetScores = false } = {}) {
   gameState.currentPlayerTurn = null;
   gameState.winner = null;
   gameState.timer = 10;
+  gameState.gameOverReason = null;
   gameState.nextStarterId = null; // <— clear only on FULL reset
 
   if (io) io.emit('update-game-state', getGameState());
@@ -196,6 +197,7 @@ function resetRound(io) {
   gameState.gameStatus = 'placing';
   gameState.currentPlayerTurn = null;
   gameState.winner = null;
+  gameState.gameOverReason = null;
   // NOTE: DO NOT clear nextStarterId here; it holds the previous round winner
   if (io) io.emit('update-game-state', getGameState());
 }
