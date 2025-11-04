@@ -66,37 +66,41 @@ io.on('connection', (socket) => {
     gameManager.readyForNextRound(socket.id, io);
   });
 
-  // Player surrenders
-  socket.on('surrender', ({ playerId }) => {
-    console.log(`Player ${playerId} surrendered!`);
+// Player surrenders
+socket.on('surrender', ({ playerId }) => {
+  const gameState = gameManager.getGameState();
+  const player = gameState.players[playerId];
+  const playerName = player?.nickname || playerId;
 
-    const gameState = gameManager.getGameState();
-    const players = Object.keys(gameState.players || {});
-    if (players.length !== 2) return; // no opponent yet
+  const players = Object.keys(gameState.players || {});
+  if (players.length !== 2) return; // no opponent yet
 
-    // หาคู่ต่อสู้
-    const opponentId = players.find((id) => id !== playerId);
+  // Find the opponent
+  const opponentId = players.find(id => id !== playerId);
+  const opponent = gameState.players[opponentId];
+  const opponentName = opponent?.nickname || opponentId;
 
-    // อัปเดตสถานะเกม
-    gameState.gameStatus = 'gameover';
-    gameState.winner = opponentId;
-    gameState.gameOverReason = 'surrender';
+  // Log surrender
+  console.log(`Player ${playerName} surrendered!`);
+  console.log(`${opponentName} wins because ${playerName} surrendered!`);
 
-    // Set next round starter = winner
-    gameState.nextStarterId = opponentId;
+  // Update game state
+  gameState.gameStatus = 'gameover';
+  gameState.winner = opponentId;
+  gameState.gameOverReason = 'surrender';
 
-    // เพิ่มคะแนนให้ผู้ชนะ (optional)
-    if (gameState.players[opponentId]) {
-      gameState.players[opponentId].score =
-        (gameState.players[opponentId].score || 0) + 1;
-    }
+  // Add score for winner
+  if (opponent) {
+    opponent.score = (opponent.score || 0) + 1;
+  }
 
-    io.emit('update-game-state', gameState);
-    io.emit('admin-update', gameState);
-  });
+  // Set next round starter = winner
+  gameState.nextStarterId = opponentId;
 
-  //   // Handle surrender manually
-  // socket.on('surrender', ({ playerId }) => handleSurrender(playerId));
+  io.emit('update-game-state', gameState);
+  io.emit('admin-update', gameState);
+});
+
 
   // Disconnect
   const nickname = gameManager.getPlayerNickname(socket.id);

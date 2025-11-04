@@ -121,35 +121,17 @@ function placeShips(socketId, ships, io) {
   // Use previous winner if valid, otherwise randomize for the first ever round
   if (gameState.nextStarterId && ids.includes(gameState.nextStarterId)) {
     gameState.currentPlayerTurn = gameState.nextStarterId;
-    console.log('[ROUND START] winner starts:', gameState.currentPlayerTurn);
+    const starterName = gameState.players[gameState.nextStarterId].nickname;
+    console.log(`[ROUND START] Winner starts: ${starterName} (${gameState.nextStarterId})`);
   } else {
     gameState.currentPlayerTurn = ids[Math.floor(Math.random() * ids.length)];
-    console.log('[ROUND START] random first player:', gameState.currentPlayerTurn);
+    const starterName = gameState.players[gameState.currentPlayerTurn].nickname;
+    console.log(`[ROUND START] Random first player: ${starterName} (${gameState.currentPlayerTurn})`);
   }
 
   startTimer(io);
   if (io) io.emit('update-game-state', getGameState());
 }
-
-// function handleSurrender(socketId, io) {
-//   const ids = Object.keys(gameState.players);
-//   const opponentId = ids.find(id => id !== socketId);
-//   if (!opponentId) return;
-
-//   // Mark opponent as winner
-//   gameState.winner = opponentId;
-//   gameState.players[opponentId].score += 1;
-//   gameState.nextStarterId = opponentId;   // ✅ this is all placeShips needs
-//   stopTimer();
-
-//   if (gameState.players[opponentId].score >= 10) {
-//     gameState.gameStatus = 'matchover';
-//   } else {
-//     gameState.gameStatus = 'gameover';
-//   }
-
-//   if (io) io.emit('update-game-state', getGameState());
-// }
 
 
 function handleFireShot(socketId, coords, io) {
