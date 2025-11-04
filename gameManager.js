@@ -71,6 +71,8 @@ function resetGame(io, { resetScores = false } = {}) {
   gameState.currentPlayerTurn = null;
   gameState.winner = null;
   gameState.timer = 10;
+  gameState.gameOverReason = null;
+  gameState.nextStarterId = null;
 
   if (io) io.emit('update-game-state', getGameState());
 }
@@ -214,6 +216,7 @@ function resetRound(io) {
     gameState.gameStatus = 'placing';
     gameState.currentPlayerTurn = null;
     gameState.winner = null;
+    gameState.gameOverReason = null;
     if (io) io.emit('update-game-state', getGameState());
 }
 function readyForNextRound(socketId, io) {
