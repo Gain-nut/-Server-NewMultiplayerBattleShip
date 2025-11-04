@@ -82,6 +82,9 @@ io.on('connection', (socket) => {
     gameState.winner = opponentId;
     gameState.gameOverReason = 'surrender';
 
+    // Set next round starter = winner
+    gameState.nextStarterId = opponentId;
+
     // เพิ่มคะแนนให้ผู้ชนะ (optional)
     if (gameState.players[opponentId]) {
       gameState.players[opponentId].score =
@@ -91,6 +94,9 @@ io.on('connection', (socket) => {
     io.emit('update-game-state', gameState);
     io.emit('admin-update', gameState);
   });
+
+  //   // Handle surrender manually
+  // socket.on('surrender', ({ playerId }) => handleSurrender(playerId));
 
   // Disconnect
   const nickname = gameManager.getPlayerNickname(socket.id);

@@ -131,6 +131,27 @@ function placeShips(socketId, ships, io) {
   if (io) io.emit('update-game-state', getGameState());
 }
 
+// function handleSurrender(socketId, io) {
+//   const ids = Object.keys(gameState.players);
+//   const opponentId = ids.find(id => id !== socketId);
+//   if (!opponentId) return;
+
+//   // Mark opponent as winner
+//   gameState.winner = opponentId;
+//   gameState.players[opponentId].score += 1;
+//   gameState.nextStarterId = opponentId;   // ✅ this is all placeShips needs
+//   stopTimer();
+
+//   if (gameState.players[opponentId].score >= 10) {
+//     gameState.gameStatus = 'matchover';
+//   } else {
+//     gameState.gameStatus = 'gameover';
+//   }
+
+//   if (io) io.emit('update-game-state', getGameState());
+// }
+
+
 function handleFireShot(socketId, coords, io) {
   if (gameState.gameStatus !== 'playing' || gameState.currentPlayerTurn !== socketId) return;
 
@@ -223,6 +244,7 @@ module.exports = {
   startGame,
   placeShips,
   handleFireShot,
+  // handleSurrender,
   resetGame,
   readyForNextRound,
   getPlayerNickname,
