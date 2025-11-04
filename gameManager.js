@@ -226,7 +226,6 @@ module.exports = {
   startGame,
   placeShips,
   handleFireShot,
-  // handleSurrender,
   resetGame,
   readyForNextRound,
   getPlayerNickname,

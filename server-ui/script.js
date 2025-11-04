@@ -48,12 +48,16 @@ socket.on('disconnect', () => {
   appendLogLine('Admin UI disconnected.');
 });
 
-socket.on('admin-update', (gameState = {}) => {
+// Existing admin-update handler
+socket.on('admin-update', updatePlayerCount);
+socket.on('update-game-state', updatePlayerCount); // <- NEW: also listen here
+
+function updatePlayerCount(gameState = {}) {
   if (playerCountEl) {
     const count = gameState.players ? Object.keys(gameState.players).length : 0;
     playerCountEl.textContent = count;
   }
-});
+}
 
 socket.on('log-message', (msg) => {
   appendLogLine(msg);
