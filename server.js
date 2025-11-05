@@ -101,29 +101,22 @@ socket.on('surrender', ({ playerId }) => {
   io.emit('admin-update', gameState);
 });
 
+socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`);
 
-  // Disconnect
-  const nickname = gameManager.getPlayerNickname(socket.id);
+    if (socket.isAdmin) {
+      console.log("Admin disconnected, but keep players active.");
+      // ❌ อย่าแตะ player state เลย
+      return;
+    }
 
+    // ✅ ผู้เล่นออกจริง ๆ ค่อยลบ
+   gameManager.removePlayer(socket.id, io);
+   io.emit('update-game-state', gameManager.getGameState());
 
-  socket.on("disconnect", () => {
-    const nickname = gameManager.getPlayerNickname(socket.id);
-    console.log(`Player disconnected: ${nickname || socket.id}`);
-    
-    // เอาผู้เล่นออก
-    gameManager.removePlayer(socket.id, io);
-
-    // แจ้งอีกฝั่งให้ขึ้น popup หรือ reset
-    io.emit("player-disconnect", nickname);
   });
 
-  socket.on('emoji', (payload) => {
-    // optional: validate payload.emoji is a single emoji character
-    socket.broadcast.emit('emoji', {
-      emoji: String(payload.emoji || '').slice(0, 4),
-      from: payload.from || 'Someone',
-    });
-  });
+
   
 });
  
