@@ -10,7 +10,8 @@ app.use(express.static(path.join(__dirname, 'server-ui')));
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: ['http://localhost:3000'], methods: ['GET','POST'] }
+  // cors: { origin: ['http://localhost:3000'], methods: ['GET','POST'] }
+  cors: { origin: ['http://localhost:3000','http://172.20.10.3:3000'], methods: ['GET','POST'] }
 });
 
 // Mirror console.log to admin UI
@@ -37,6 +38,16 @@ io.on('connection', (socket) => {
     gameManager.resetGame(io, { resetScores: true });
     io.emit('game-reset');
     io.emit('admin-update', gameManager.getGameState());
+  });
+  socket.on('use-item-double-shot', (coords) => {
+    gameManager.useItemDoubleShot(socket.id, coords, io); // เรียกฟังก์ชันใหม่
+    io.emit('update-game-state', gameManager.getGameState());
+  });
+
+  // Listener สำหรับไอเทม "สแกน 9 ช่อง"
+  socket.on('use-item-sonar-scan', (coords) => {
+    gameManager.useItemSonarScan(socket.id, coords, io); // เรียกฟังก์ชันใหม่
+    io.emit('update-game-state', gameManager.getGameState());
   });
 
   socket.on('join-game', (nickname) => {

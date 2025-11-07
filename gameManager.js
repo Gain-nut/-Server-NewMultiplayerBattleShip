@@ -206,6 +206,73 @@ function readyForNextRound(socketId, io) {
         if (io) io.emit('update-game-state', getGameState());
     }
 }
+function useItemDoubleShot(socketId, coords, io) {
+  // Logic นี้เหมือน handleFireShot เกือบทั้งหมด
+  if (gameState.gameStatus !== 'playing' || gameState.currentPlayerTurn !== socketId) return;
+  const playerIds = Object.keys(gameState.players);
+  const opponentId = playerIds.find(id => id !== socketId);
+  if (!opponentId) return;
+  
+  const opponent = gameState.players[opponentId];
+  const { row, col } = coords;
+  if (opponent.gameBoard[row][col] !== null) return;
+
+  const isHit = opponent.ships.some(shipPart => shipPart.row === row && shipPart.col === col);
+  
+  if (isHit) {
+    opponent.gameBoard[row][col] = 'hit';
+    opponent.shipPartsHit++;
+    if (opponent.shipPartsHit >= 16) {
+      // ชนะเกม
+      gameState.winner = socketId;
+      gameState.players[socketId].score++;
+      stopTimer();
+      if (gameState.players[socketId].score >= 2) gameState.gameStatus = 'matchover';
+      else gameState.gameStatus = 'gameover';
+    } else {
+      // *** จุดสำคัญ: ยิงโดนแต่ "ไม่" สลับเทิร์น ***
+      startTimer(io); // แค่รีเซ็ตเวลา
+    }
+  } else {
+    opponent.gameBoard[row][col] = 'miss';
+    // *** จุดสำคัญ: ยิงพลาดแต่ "ไม่" สลับเทิร์น ***
+    startTimer(io); // แค่รีเซ็ตเวลา
+  }
+}
+
+// ▼▼▼ เพิ่มฟังก์ชันนี้เข้าไป ▼▼▼
+function useItemSonarScan(socketId, coords, io) {
+  // การสแกนจะนับเป็น 1 เทิร์น
+  if (gameState.gameStatus !== 'playing' || gameState.currentPlayerTurn !== socketId) return;
+  const playerIds = Object.keys(gameState.players);
+  const opponentId = playerIds.find(id => id !== socketId);
+  if (!opponentId) return;
+
+  const opponent = gameState.players[opponentId];
+  const { row, col } = coords; // (row, col) คือจุดศูนย์กลางการสแกน
+
+  let shipPartsFound = 0;
+  // วนลูป 9 ช่อง (3x3) รอบจุดที่เลือก
+  for (let r = row - 1; r <= row + 1; r++) {
+    for (let c = col - 1; c <= col + 1; c++) {
+      // ตรวจสอบว่าช่องที่สแกนอยู่ในขอบเขต 0-7
+      if (r >= 0 && r <= 7 && c >= 0 && c <= 7) {
+        // เช็คว่าในช่องนั้นมีเรือของฝ่ายตรงข้ามหรือไม่
+        const isShipPart = opponent.ships.some(part => part.row === r && part.col === c);
+        if (isShipPart) {
+          shipPartsFound++;
+        }
+      }
+    }
+  }
+
+  // ส่งผลลัพธ์กลับไปให้ "เฉพาะ" ผู้เล่นที่สแกน
+  io.to(socketId).emit('sonar-result', { count: shipPartsFound, center: coords });
+
+  // สแกนเสร็จแล้ว ให้สลับเทิร์น
+  gameState.currentPlayerTurn = opponentId;
+  startTimer(io);
+}
 
 // แก้ไข module.exports ให้ถูกต้อง ไม่มี key ซ้ำ
 module.exports = {
@@ -218,5 +285,11 @@ module.exports = {
   handleFireShot,
   resetGame,
   readyForNextRound,
+<<<<<<< Updated upstream
   // hi
+=======
+  getPlayerNickname,
+  useItemDoubleShot, // <--- เพิ่มใหม่
+  useItemSonarScan,  // <--- เพิ่มใหม่
+>>>>>>> Stashed changes
 };
