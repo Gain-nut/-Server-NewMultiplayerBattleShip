@@ -101,6 +101,11 @@ socket.on('surrender', ({ playerId }) => {
   io.emit('admin-update', gameState);
 });
 
+
+const nickname =gameManager.getPlayerNickname(socket.id);
+
+
+
 socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
 
@@ -115,7 +120,13 @@ socket.on('disconnect', () => {
    io.emit('update-game-state', gameManager.getGameState());
 
   });
-
+  socket.on('emoji', (payload) => {
+    // optional: validate payload.emoji is a single emoji character
+    socket.broadcast.emit('emoji', {
+      emoji: String(payload.emoji || '').slice(0, 4),
+      from: payload.from || 'Someone',
+    });
+  });
 
   
 });
@@ -125,3 +136,4 @@ server.listen(PORT, () => {
   console.log(`Battleship server running on port ${PORT}`);
   console.log(`Admin UI available at http://localhost:${PORT}`);
 });
+
